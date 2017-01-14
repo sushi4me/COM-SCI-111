@@ -1,16 +1,26 @@
-CC=gcc
-
+CC = gcc
+files = main.c Makefile *.png README
 .SILENT:
 
 default: main.c
-	@echo "Compiling!"
-	$(CC) -o main -g main.c
-check: main
-	@echo "Checking..."
+	$(CC) -g main.c -o lab0
+check: lab0 catch_segfault_test IO_test
+	# Check tests
 clean:
-	@echo "Cleaning up..."
-	rm -f main *.o
+	rm -f lab0 *.o log.txt lab0-204401093.tar.gz
 dist:
-	@echo "Packing everything up!"
 	rm -f lab0-204401093.tar.gz
-	tar -xzcf lab0-204401093.tar.gz *.c Makefile *.jpeg README
+	tar -czf lab0-204401093.tar.gz $(files)
+# Tests
+catch_segfault_test:
+	# &> is for stdout and stderr redirection
+	# The RHS only executes if LHS is non-zero, 0 is TRUE	
+	./lab0 --catch --segfault > /dev/null || [ $$? -eq 3 ] || \
+	echo "FAILED: catch & segfault test" >> log.txt
+IO_test:
+	echo "Hello Nathan Kong!\nThis is for CS 111." > input.txt
+	./lab0 --input=input.txt --output=output.txt
+	diff input.txt output.txt > /dev/null || \
+	echo "FAILED: IO test [$$?]" >> log.txt
+	rm -f input.txt
+	rm -f output.txt

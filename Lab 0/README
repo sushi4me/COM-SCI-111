@@ -1,0 +1,54 @@
+Name:	Nathan Kong
+UID:	204 401 093
+Title:	Lab 0
+
+Files:
+	* Makefile
+		File used in compiling, cleaning-up, packaging and checking
+		the project.  Available commands from this file:
+			make
+			make clean
+			make dist
+			make check	
+
+	* main.c
+		Bulk of the project, reads stdin and writes to stdout.  Options
+		can be used to purposely trigger a segmentation fault or use
+		other file descriptors for input and output.  Compiled object
+		after 'make' is lab0.
+
+	* 5.png
+		A screenshot of the program taking the --segfault argument and
+		a stack backtrace (bt) using gdb.
+
+	* 6.png
+		A screenshot of running the program step-by-step right before
+		the segmentation fault (due to --segfault argument). We place a
+		break-point at the bad assignment (b 101) and check the
+		variable (print segfault_ptr); the value is reported back as
+		0x0.
+
+	* README
+
+Resources:
+	* I had used 'www.gnu.org/s/libc...' for examples on how various 
+	  functions such as 'getopt_long' were used.
+
+Testing:
+	* I have implemented a series of tests that are defined through the
+	  Makefile, via 'make check'.
+
+	* The test 'catch_segfault_test' uses the catch and segfault options.
+	  After running the program, the test expects the exit status variable
+	  ($?) to report 3; otherwise we fail this test and a message is logged
+	  into log.txt.
+
+	* The test 'IO_test' uses the input and output options.  The input.txt
+	  is created with two rows of text and then proceeds with running the
+	  program using this as input.  We can check for the correct output by
+	  finding the diff between input.txt and output.txt.  If there is no
+	  difference, then diff will return 0 (the RHS of or-statement is not
+	  executed if the LHS returns zero).
+
+Possible bugs:
+	* 

@@ -3,20 +3,18 @@
 #include <signal.h>
 #include <stdio.h>
 #include <stdlib.h>
-//#include <unistd.h>
+#include <unistd.h>
 
 /*
 	* <fcntl.h> controls file options
-	* <getopt.h> parses command-line arguments
-	* <signal.h> defines symbolic constants
-	* <unistd.h> not sure if repeats <fcntl.h>
+	* <getopt.h> for command-line arguments
+	* <signal.h> used for getting segfault signal, and overwriting handler
+	* <unistd.h> gets rid of system call warnings
 */
 
-// Usage message printed upon incorrect use
-void usage() {
-	printf("lab0 [OPTIONS] -i file1 -o file2\n");
-}
+// lab0 [OPTIONS] -i file1 -o file2
 
+// Read and write from stdin and to stdout, respectively
 void read_and_write(int i, int o) {
 	char* buffer = (char*) malloc(sizeof(char));
 	ssize_t status = read(i, buffer, 1);
@@ -51,12 +49,11 @@ int main(int argc, char** argv) {
 		* optarg is from getopt.h
 		* O_RDONLY := read only
 		* For creat(2): mode_t mode = SIRUSR | S_IWUSR | S_IRGRP | S_IROTH
+		* For input option close FD0 and dup the FD of input file, similarly for output
 	*/	
-	while((opt = getopt_long(argc, argv, "sci:o:", long_options, NULL)) != -1) {
-		printf("Option: %d \n", opt);
+	while((opt = getopt_long(argc, argv, "i:o:cs", long_options, NULL)) != -1) {
 		switch(opt) {
 			case 'i':
-				printf("Intput!\n");
 				input_return_value = open(optarg, O_RDONLY);
 				if(input_return_value != -1) {
 					close(0);
@@ -70,7 +67,6 @@ int main(int argc, char** argv) {
 				}
 				break;
 			case 'o':
-				printf("Output!\n");
 				output_return_value = creat(optarg, 0666);
 				if(output_return_value != -1) {
 					close(1);
@@ -84,15 +80,14 @@ int main(int argc, char** argv) {
 				}				
 				break;			
 			case 's':
-				printf("Segfault!\n");
 				segfault_flag = 1;
 				break;
 			case 'c':
-				printf("Catch!\n");
 				signal(SIGSEGV, catch_handler);
 				break;
 			default:
-				printf("Invalid\n");
+				// Nothing
+				break;
 		}
 	}
 
@@ -103,6 +98,7 @@ int main(int argc, char** argv) {
 	}
 
 	// Read and write from input to output
+	// C-d imitates EOF while using stdin
 	read_and_write(0, 1);
 
 	exit(0);
