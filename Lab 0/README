@@ -50,5 +50,18 @@ Testing:
 	  difference, then diff will return 0 (the RHS of or-statement is not
 	  executed if the LHS returns zero).
 
-Possible bugs:
-	* 
+Possible bugs/issues:
+	* The program overwrites any pre-existing file when outputting through
+	  the 'creat' function.
+	* My implementation of the program reads and writes a single byte at a
+	  time.  This implementation may be inefficient compared to anothers
+	  which have a larger buffer size, however this would require me to
+	  free and malloc the buffer every time I read and write.  Otherwise,
+	  I would be able to see remanents of past buffer allocations if the
+	  next segment does not match or exceed the previous size.
+	  For example, a stdin/stdout transaction may be:
+		> Hello
+		> Hello
+		> Hi
+		> Hi
+		> llo
