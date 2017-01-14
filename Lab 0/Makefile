@@ -1,3 +1,9 @@
+#-------------------------------------------------
+# Name:	 Nathan Kong
+# UID:	 204 401 093
+# Title: Lab 0
+#-------------------------------------------------
+
 CC = gcc
 files = main.c Makefile *.png README
 .SILENT:

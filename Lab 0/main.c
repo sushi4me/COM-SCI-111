@@ -1,3 +1,9 @@
+/*-------------------------------------------------
+Name:	Nathan Kong
+UID:	204 401 093
+Title:	Lab 0
+---------------------------------------------------*/
+
 #include <fcntl.h>
 #include <getopt.h>
 #include <signal.h>
