@@ -1,0 +1,65 @@
+Name:	Nathan Kong
+UID:	204 401 093
+Title:	Lab 1A
+
+Files:
+	* Makefile
+		File used in compiling, cleaning-up, packaging and checking
+		the project.  Available commands are:
+			make
+			make clean
+			make check
+			make dist
+	
+	* main.c
+		The main program is written in 'main.c'.  The current 
+		submission includes a version of simpsh with the following
+		options:
+			--rdonly <file>
+			--wronly <file>
+			--verbose
+			--command # # # <cmd> <args>
+	
+	* README
+
+Testing:
+	* Using the Makefile command 'make check' the following 3 tests are
+	  performed:
+
+		./simpsh --rdonly READIN.txt --wronly testout.txt \
+		--wronly testerr.txt --command 0 1 2 cat > /dev/null 2&>1
+
+		This 1st test is a general checker to see if simpsh is able to
+		perform a typical command.
+
+		./simpsh --wronly no_test.txt > /dev/null 2>&1
+		
+		The 2nd test checks for the correct exit status from simpsh
+		when given a file that does not exist to be read/written to.
+		It should definitely not return an exit status of 0.
+
+		./simpsh --rdonly READIN.txt --wronly testout.txt \
+		--wronly testerr.txt --no_such_thing \
+		--command 0 1 2 cat > /dev/null 2>&1
+		
+		This last test is to examine the possibility of an incorrect
+		command.  The simpsh should ignore commands that are not valid,
+		but should continue.
+
+Notes/Issues:
+	* The command 'make check' does not run a 'test.sh' file but instead
+	  runs a set of tests already placed into Makefile.
+
+	* In the program I had made some assumptions as to how many indices to
+	  expect for stdin, stdout, and stderr when processing a command.
+
+	* In very specific situations STDOUT_FILENO may not be equivalent with
+	  fileno(stdout) in which this case the program would not perform with
+	  expected behavior.  I use dup2 assuming STDOUT_FILENO would locate
+	  the file descriptor for stdout at fd2 always.
+
+	* Relatively messy way of tracking arguments in the command option, may
+	  cause potential segment faults for weird inputs however, these should
+	  be handled easily by reallocating whenever the memory space is full.
+	  The simpsh may exit if it does not like the malloc or realloc
+	  calls.

@@ -1,0 +1,31 @@
+Name:	Nathan Kong
+UID:	204 401 093
+Title:	Lab 1C
+
+Files:
+	* Makefile
+
+	* test.sh	
+
+	* main.c
+	
+	* README
+
+	* labC_benchmark.pdf
+
+Improvements:
+	* Included the option of '-std=c99' to prevent errors with make.
+
+	* Logic for isOption() is corrected, the past version would not allow
+	  for correct arguments such as 'A-Z' to be passed.
+
+	* Switch to SIG_IGN instead of a user-made handler to ignore signals;
+	  the past user-defined handler would hang the program given certain
+	  signals such as a segmentation fault.
+
+	* Corrected the verbose of '--crash' to '--abort'.
+
+Notes/Issues:
+	* Hopefully none, however there are still some cases in which dup2 will
+	  report an error.  This may be perhaps a faulty use of pipes however
+	  future versions should prevent this.
