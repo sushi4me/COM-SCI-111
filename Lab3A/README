@@ -1,0 +1,29 @@
+Name:	Nathan Kong
+UID:	204 401 093
+Title:	Lab3A
+
+Notes:
+	** I attempted to use fprintf instead of dprintf.  This may cause
+	   problems as I prevously had an implementation using dprintf.
+	   Although I have compiled for the given disk-image on lnxsrv09
+	   and there appears to be no problems with that!
+
+	* I do not have valid stderr logs for sanity checks.
+
+	* I was very confused as to whether the double/triple indirect entries
+	  were to be printed.  However, the Piazza posts seemed to hint they
+	  were to be left out as we should match the sample CSV files.
+	  Therefore I have my implementation not report double/triple indirect
+	  entries; the code for it is commented out!
+
+Files:
+	Makefile
+		* make
+		* make build
+		* make clean
+		* make tarball
+
+	README
+
+	lab3a.c
+		* Compiles the main program.
