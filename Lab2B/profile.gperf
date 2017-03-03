@@ -1,0 +1,171 @@
+Total: 417 samples
+     358  85.9%  85.9%      417 100.0% runTestThread
+      47  11.3%  97.1%       47  11.3% __strcmp_sse2_unaligned
+       6   1.4%  98.6%        6   1.4% SortedList_lookup
+       5   1.2%  99.8%        5   1.2% SortedList_insert
+       1   0.2% 100.0%        1   0.2% _init
+       0   0.0% 100.0%      417 100.0% start_thread
+ROUTINE ====================== runTestThread in /home/nathan/Desktop/COM SCI 111/Lab2B/lab2_list.c
+   358    417 Total samples (flat / cumulative)
+     .      .   64: 	else if(opt_sync == 's')
+     .      .   65: 		__sync_lock_release(&spin_lock);
+     .      .   66: }
+     .      .   67: 
+     .      .   68: void runTestThread(void *arg)
+---
+     .      .   69: {
+     .      .   70: 	int* p_thread_num =(int *)arg;
+     .      .   71: 	int thread_num = *p_thread_num;
+     .      .   72: 
+     .      .   73: 	long start = thread_num*n_iterations;
+     .      .   74: 	long end = start + n_iterations;
+     .      .   75: 
+     .      .   76: 	// Insert elements into multilist
+     .      .   77: 	for(long i = start; i < end; i++) {
+     .      .   78: 		int l_num = hashingFunction((elements + i)->key);
+     .      .   79: 
+     .      .   80: 		// Lock list
+     .      .   81: 		if(opt_sync == 'm') {
+     .      .   82: 			struct timespec m_start, m_end;
+     .      .   83: 			if(clock_gettime(CLOCK_MONOTONIC, &m_start) == -1) {
+     .      .   84:         			fprintf(stderr, "ERROR: Could not get start_time.\n");
+     .      .   85:         			exit(1);
+     .      .   86:     			}
+     .      .   87: 			pthread_mutex_lock(&m[l_num]);
+     .      .   88: 			if(clock_gettime(CLOCK_MONOTONIC, &m_end) == -1) {
+     .      .   89:         			fprintf(stderr, "ERROR: Could not get end_time.\n");
+     .      .   90:         			exit(1);
+     .      .   91:     			}
+     .      .   92: 			long long start = m_start.tv_sec*NS_PER_S + m_start.tv_nsec;
+     .      .   93: 			long long end = m_end.tv_sec*NS_PER_S + m_end.tv_nsec;
+     .      .   94: 			mutex_lock_time += end - start;
+     .      .   95: 		}
+     .      .   96: 		else if(opt_sync == 's')
+   159    159   97: 			while(__sync_lock_test_and_set(&spin_lock[l_num], 1));
+     .      .   98: 
+     .      .   99: 		// INSERT ELEMENT
+     .     31  100: 		SortedList_insert(&list[l_num], elements + i);
+     .      .  101: 		
+     .      .  102: 		// Release list
+     .      .  103: 		if(opt_sync == 'm')
+     .      .  104: 			pthread_mutex_unlock(&m[l_num]);
+     .      .  105: 		else if(opt_sync == 's')
+     .      .  106: 			__sync_lock_release(&spin_lock[l_num]);
+     .      .  107: 	}
+     .      .  108: 
+     .      .  109: 	// FIND THE LENGTH OF THE LIST
+     .      .  110: 	for(int i = 0; i < n_lists; i++) {	
+     .      .  111: 		// Lock list
+     .      .  112: 		if(opt_sync == 'm') {
+     .      .  113: 			struct timespec m_start, m_end;
+     .      .  114: 			if(clock_gettime(CLOCK_MONOTONIC, &m_start) == -1) {
+     .      .  115:         			fprintf(stderr, "ERROR: Could not get start_time.\n");
+     .      .  116:         			exit(1);
+     .      .  117:     			}
+     .      .  118: 			pthread_mutex_lock(&m[i]);
+     .      .  119: 			if(clock_gettime(CLOCK_MONOTONIC, &m_end) == -1) {
+     .      .  120:         			fprintf(stderr, "ERROR: Could not get end_time.\n");
+     .      .  121:         			exit(1);
+     .      .  122:     			}
+     .      .  123: 			long long start = m_start.tv_sec*NS_PER_S + m_start.tv_nsec;
+     .      .  124: 			long long end = m_end.tv_sec*NS_PER_S + m_end.tv_nsec;
+     .      .  125: 			mutex_lock_time += end - start;
+     .      .  126: 		}
+     .      .  127: 		else if(opt_sync == 's')
+     .      .  128: 			while(__sync_lock_test_and_set(&spin_lock[i], 1));
+     .      .  129: 
+     .      .  130: 		SortedList_length(&list[i]);
+     .      .  131: 		
+     .      .  132: 		// Release list
+     .      .  133: 		if(opt_sync == 'm')
+     .      .  134: 			pthread_mutex_unlock(&m[i]);
+     .      .  135: 		else if(opt_sync == 's')
+     .      .  136: 			__sync_lock_release(&spin_lock[i]);
+     .      .  137: 	}
+     .      .  138: 
+     .      .  139: 	char *key_check = malloc(sizeof(char) * 5);
+     .      .  140: 	SortedListElement_t *a;
+     .      .  141: 
+     .      .  142: 	// Remove inserted keys
+     .      .  143: 	for(long i = start; i < end; i++) {
+     .      .  144: 		strcpy(key_check,(elements + i)->key);
+     .      .  145: 		int l_num = hashingFunction(key_check);
+     .      .  146: 
+     .      .  147: 		// Lock list
+     .      .  148: 		if(opt_sync == 'm') {
+     .      .  149: 			struct timespec m_start, m_end;
+     .      .  150: 			if(clock_gettime(CLOCK_MONOTONIC, &m_start) == -1) {
+     .      .  151:         			fprintf(stderr, "ERROR: Could not get start_time.\n");
+     .      .  152:         			exit(1);
+     .      .  153:     			}
+     .      .  154: 			pthread_mutex_lock(&m[l_num]);
+     .      .  155: 			if(clock_gettime(CLOCK_MONOTONIC, &m_end) == -1) {
+     .      .  156:         			fprintf(stderr, "ERROR: Could not get end_time.\n");
+     .      .  157:         			exit(1);
+     .      .  158:     			}
+     .      .  159: 			long long start = m_start.tv_sec*NS_PER_S + m_start.tv_nsec;
+     .      .  160: 			long long end = m_end.tv_sec*NS_PER_S + m_end.tv_nsec;
+     .      .  161: 			mutex_lock_time += end - start;
+     .      .  162: 		}
+     .      .  163: 		else if(opt_sync == 's')
+   130    130  164: 			while(__sync_lock_test_and_set(&spin_lock[l_num], 1));
+     .      .  165: 
+     .      .  166: 		// LOOK UP ELEMENT IN LIST
+     .     28  167: 		a = SortedList_lookup(&list[l_num], key_check);
+     .      .  168: 		
+     .      .  169: 		// Release list
+     .      .  170: 		if(opt_sync == 'm')
+     .      .  171: 			pthread_mutex_unlock(&m[l_num]);
+     .      .  172: 		else if(opt_sync == 's')
+     .      .  173: 			__sync_lock_release(&spin_lock[l_num]);
+     .      .  174: 
+     .      .  175: 		// Lookup failed
+     .      .  176: 		if(!a) {
+     .      .  177: 			fprintf(stderr, "ERROR: Element could not be found.\n");
+     .      .  178: 			exit(1);
+     .      .  179: 		}
+     .      .  180: 
+     .      .  181: 		// Lock list
+     .      .  182: 		if(opt_sync == 'm') {
+     .      .  183: 			struct timespec m_start, m_end;
+     .      .  184: 			if(clock_gettime(CLOCK_MONOTONIC, &m_start) == -1) {
+     .      .  185:         			fprintf(stderr, "ERROR: Could not get start_time.\n");
+     .      .  186:         			exit(1);
+     .      .  187:     			}
+     .      .  188: 			pthread_mutex_lock(&m[l_num]);
+     .      .  189: 			if(clock_gettime(CLOCK_MONOTONIC, &m_end) == -1) {
+     .      .  190:         			fprintf(stderr, "ERROR: Could not get end_time.\n");
+     .      .  191:         			exit(1);
+     .      .  192:     			}
+     .      .  193: 			long long start = m_start.tv_sec*NS_PER_S + m_start.tv_nsec;
+     .      .  194: 			long long end = m_end.tv_sec*NS_PER_S + m_end.tv_nsec;
+     .      .  195: 			mutex_lock_time += end - start;
+     .      .  196: 		}
+     .      .  197: 		else if(opt_sync == 's')
+    69     69  198: 			while(__sync_lock_test_and_set(&spin_lock[l_num], 1));
+     .      .  199: 
+     .      .  200: 		// Work around for error which says l_num is an improper subscript
+     .      .  201: 		pthread_mutex_t *m_temp = (m+l_num);
+     .      .  202: 
+     .      .  203: 		// DELETE ELEMENT FROM LIST
+     .      .  204: 		int m = SortedList_delete(a);
+     .      .  205: 
+     .      .  206: 		// Release list
+     .      .  207: 		if(opt_sync == 'm')
+     .      .  208: 			pthread_mutex_unlock(m_temp);
+     .      .  209: 		else if(opt_sync == 's')
+     .      .  210: 			__sync_lock_release(&spin_lock[l_num]);
+     .      .  211: 
+     .      .  212: 		// Delete failed
+     .      .  213: 		if(m != 0) {
+     .      .  214: 			fprintf(stderr, "ERROR: Element could not be deleted.\n");
+     .      .  215: 			exit(1);
+     .      .  216: 		}
+     .      .  217: 	}
+     .      .  218: }
+---
+     .      .  219: 
+     .      .  220: // Main
+     .      .  221: int main(int argc, char** argv)
+     .      .  222: {
+     .      .  223: 	int opt;
