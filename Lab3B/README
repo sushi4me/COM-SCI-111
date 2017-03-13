@@ -1,0 +1,34 @@
+Name:	Nathan Kong
+UID:	204 401 093
+Title:	Lab 3B
+
+NOTES:
+	* Used Python to complete Lab3B.
+
+	* The proper CSV files (6) should be present.
+
+	* Use 'make' or 'make run' to execute, or 'python lab3b.py'.
+
+	* The main program should execute in a little less than 10 seconds.
+
+	** The longest part of my program is writing to the output file.
+
+	* The output file is sorted by running the sort command in Makefile.
+
+	* The command 'make clean' gets rid of lab3b_check.txt only.
+
+FILES:
+
+	* README
+
+	* Makefile
+		Commands for executing, packaging and cleaning.
+
+		Commands available:
+			make
+			make run (same as 'make')
+			make clean
+			make tarball
+
+	* lab3b.py
+		Contains the Python program, run using 'make' or 'make run'.

@@ -38,7 +38,7 @@ class Directory():
 		self.mInodeEntry 	= inode
 		self.mParentEntry	= parent
 		self.mEntryNum		= entry
-		self.mEntry_name	= entry_name
+		self.mEntryName		= entry_name
 
 # FUNCTIONS
 def getFileSystemData():
@@ -110,15 +110,11 @@ def getFileSystemData():
 			FREE_BLOCKS.append(free_number)
 		elif map_number in BITMAP_FREE_INODES:
 			FREE_INODES.append(free_number)
-		elif DEBUGGING:
-			print "Free block/inode number does not appear in neither bitmaps.\n"
 
 	return
 
-def appendIN_USE_BLOCKS(block_num, inode_num, entry, indirect_num):
-	global TOTAL_BLOCKS
-	global IN_USE_BLOCKS
-	global INVALID_BLOCKS
+def append_IN_USE_BLOCKS(block_num, inode_num, entry, indirect_num):
+	global TOTAL_BLOCKS, IN_USE_BLOCKS, INVALID_BLOCKS
 
 	if block_num == 0 or block_num > TOTAL_BLOCKS:
 		INVALID_BLOCKS.append((block_num, inode_num, indirect_num, entry))
@@ -129,10 +125,36 @@ def appendIN_USE_BLOCKS(block_num, inode_num, entry, indirect_num):
 
 	return
 
+def getSingleBlock(current, inode, indirect, entry):
+	global INDIRECT_BLOCKS
+	count = 1
+	append_IN_USE_BLOCKS(current, inode, entry, indirect)
+	if current in INDIRECT_BLOCKS:
+		for line in INDIRECT_BLOCKS[current]:
+			count = count + 1
+			append_IN_USE_BLOCKS(line[1], inode, line[0], current)
+	return count
+
+def getDoubleBlock(current, inode, indirect, entry):
+	global INDIRECT_BLOCKS
+	count = 1
+	append_IN_USE_BLOCKS(current, inode, entry, indirect)
+	if current in INDIRECT_BLOCKS:
+		for line in INDIRECT_BLOCKS[current]:
+			count = count + getSingleBlock(line[1], inode, current, line[0])
+	return count
+
+def getTripleBlock(current, inode, indirect, entry):
+	global INDIRECT_BLOCKS
+	count = 1
+	append_IN_USE_BLOCKS(current, inode, entry, indirect)
+	if current in INDIRECT_BLOCKS:
+		for line in INDIRECT_BLOCKS[current]:
+			count = count + getDoubleBlock(line[1], inode, current, line[0])
+	return count
+
 def checkInodes():
-	global TOTAL_BLOCKS
-	global INVALID_BLOCKS
-	global IN_USE_INODES
+	global TOTAL_BLOCKS, INVALID_BLOCKS, IN_USE_INODES
 
 	inode_csv = csv.reader(open('inode.csv', 'rb'),
 		delimiter=',')
@@ -145,14 +167,21 @@ def checkInodes():
 		pending = num_blocks - 12
 		IN_USE_INODES[inode] = Inode(inode, link_count)
 
-		#
+		# Check validity of direct blocks
 		for ptr in range(11, 11 + min(12, num_blocks)):
-			appendIN_USE_BLOCKS(int(line[ptr], 16), inode, ptr-11, 0)
+			append_IN_USE_BLOCKS(int(line[ptr], 16), inode, ptr - 11, 0)
 
+		# Go through indirect blocks - single, double, triple
 		for i in range(1, 4):
-
-		## TO DO:
-
+			if pending > 0:
+				current = int(line[i + 22], 16)
+				if current == 0 or current > TOTAL_BLOCKS:
+					INVALID_BLOCKS.append((current, inode, 0, i + 11))
+				else:
+					if i == 1: blocksInsideBlock = getSingleBlock(current, inode, 0, i + 11)
+					elif i == 2: blocksInsideBlock = getDoubleBlock(current, inode, 0, i + 11)
+					elif i == 3: blocksInsideBlock = getTripleBlock(current, inode, 0, i + 11)
+					pending = pending - blocksInsideBlock
 	return
 
 def checkIndirect():
@@ -170,6 +199,165 @@ def checkIndirect():
 			INDIRECT_BLOCKS[contains] = [(entry_num, block_pointer)]
 		else:
 			INDIRECT_BLOCKS[contains].append((entry_num, block_pointer))
+
+	return
+
+def checkDirectories():
+	global IN_USE_INODES, UNALLOCATED_INODE, IN_USE_DIR, INVALID_DIR_ENTRY
+
+	directory_csv = csv.reader(open('directory.csv', 'rb'), delimiter=",")
+
+	for line in directory_csv:
+		# Give correct typing to current otherwise 229 fails
+		current = Directory(int(line[4]), int(line[0]), int(line[1]), str(line[5]))
+		error = (current.mParentEntry, current.mEntryNum)
+
+		if current.mParentEntry == 2 or current.mInodeEntry != current.mParentEntry:
+			IN_USE_DIR[current.mInodeEntry] = current
+
+		if current.mInodeEntry in IN_USE_INODES:
+			IN_USE_INODES[current.mInodeEntry].mDirEntries.append(error)
+		elif current.mInodeEntry in UNALLOCATED_INODE:
+			UNALLOCATED_INODE[current.mInodeEntry].append(error)
+		else:
+			UNALLOCATED_INODE[current.mInodeEntry] = [error]
+
+		parent = None
+		if (current.mEntryNum == 0 or current.mEntryName == '.') and \
+		current.mInodeEntry != current.mParentEntry:
+			parent = current.mParentEntry
+		elif (current.mEntryNum == 1 or current.mEntryName == '..') and \
+		(current.mInodeEntry != IN_USE_DIR[current.mParentEntry].mParentEntry or current.mParentEntry not in IN_USE_DIR):
+			parent = IN_USE_DIR[current.mParentEntry].mParentEntry
+
+		if parent is not None:
+			INVALID_DIR_ENTRY.append((current.mParentEntry, current.mEntryName, current.mInodeEntry, parent))
+
+	return
+
+def writeToOutput(lab3b_check_txt):
+	global BITMAP_FREE_BLOCKS
+	global FREE_BLOCKS
+	global INVALID_BLOCKS
+	global BITMAP_FREE_INODES
+	global FREE_INODES
+	global INVALID_DIR_ENTRY
+	global IN_USE_BLOCKS
+	global IN_USE_INODES
+	global IN_USE_DIR
+	global INDIRECT_BLOCKS
+	global UNALLOCATED_INODE
+
+	# strip() deletes beginning and trailing spaces
+
+	# Unallcoated block referenced by inode
+	for obj in IN_USE_BLOCKS:
+		if obj in FREE_BLOCKS:
+			line = "UNALLOCATED BLOCK < "	\
+				+ str(obj)		\
+				+ " > REFERENCED BY "	\
+				+ "INODE < "
+			for (inode, indirect, entry) in IN_USE_BLOCKS[obj].mReferencePointers:
+				if indirect != 0:
+					line = line + str(inode) 	\
+						+ " > INDIRECT BLOCK < "\
+						+ str(indirect) 	\
+						+ " > ENTRY < " 	\
+						+ str(entry) 		\
+						+ " >"
+				else:
+					line = line + str(inode)\
+						+ " > ENTRY < " \
+						+ str(entry) 	\
+						+ " >"
+			lab3b_check_txt.write(line.strip() + "\n")
+
+	# Duplicated blocks
+	for obj in IN_USE_BLOCKS:
+		if len(IN_USE_BLOCKS[obj].mReferencePointers) > 1:
+			line = "MULTIPLY REFERENCED BLOCK < "	\
+				+ str(obj)			\
+				+ " > BY "	
+			for (inode, indirect, entry) in IN_USE_BLOCKS[obj].mReferencePointers:
+				if indirect != 0:
+					line = line + "INODE < "  \
+						+ str(inode)		\
+						+ " > INDIRECT BLOCK < "\
+						+ str(indirect)		\
+						+ " > ENTRY < "		\
+						+ str(entry)		\
+						+ " > "
+				else:
+					line = line + "INODE < "	\
+						+ str(inode)		\
+						+ " > ENTRY < "		\
+						+ str(entry)		\
+						+ " > "
+			lab3b_check_txt.write(line.strip() + "\n")
+
+	# Unallocated inode
+	for obj in UNALLOCATED_INODE:
+		line = "UNALLOCATED INODE < "	\
+			+ str(obj)		\
+			+ " REFERENCED BY "
+		for contains in UNALLOCATED_INODE[obj]:
+			line = line + "DIRECTORY < "	\
+				+ str(contains[0])	\
+				+ " > ENTRY < "		\
+				+ str(contains[1])	\
+				+ " > "
+		lab3b_check_txt.write(line.strip() + "\n")
+	
+	# Invalid link
+	line = ""
+	for obj in IN_USE_INODES:
+		inode = IN_USE_INODES[obj]
+		links = len(inode.mDirEntries)
+
+		if obj > 10 and links == 0:
+			line = line + "MISSING INODE < "			\
+				+ str(obj)					\
+				+" > SHOULD BE IN FREE LIST < "			\
+				+ str(BITMAP_FREE_INODES[obj/INODES_PER_GROUP])	\
+				+ " >\n"
+		elif links != inode.mLinkCount:
+			line = line + "LINKCOUNT < " 	\
+				+ str(obj)		\
+				+ " > IS < "		\
+				+ str(inode.mLinkCount)	\
+				+ " > SHOULD BE < "	\
+				+ str(links)		\
+				+ " >\n"
+	lab3b_check_txt.write(line)
+
+	# Invalid directory
+	for (invalid_parent, entry, inode, correct_parent) in INVALID_DIR_ENTRY:
+		line = "INCORRECT ENTRY IN < "		\
+			+ str(invalid_parent)		\
+			+ " > NAME < "			\
+			+ str(entry)			\
+			+ " > LINK TO < "		\
+			+ str(inode)			\
+			+ " > SHOULD BE < "		\
+			+ str(correct_parent)		\
+			+ " >"
+		lab3b_check_txt.write(line.strip() + "\n")
+
+	# Invalid block
+	for (block, inode, indirect, entry) in INVALID_BLOCKS:
+		line = "INVALID BLOCK < "	\
+			+ str(block)		\
+			+ " > IN INODE < "	\
+			+ str(inode)		\
+			+ " > "
+		if indirect != 0:
+			line = line + " INDIRECT BLOCK < "	\
+				+ str(indirect)			\
+				+ " > "
+		line = line + "ENTRY < "	\
+			+ str(entry)		\
+			+ " >\n"
+		lab3b_check_txt.write(line.strip() + "\n")
 
 	return
 
@@ -191,9 +379,18 @@ def main():
 	options, args = parser.parse_args(sys.argv[1:])
 	DEBUGGING = options.debugging
 
+	# Open file
+	lab3b_check_txt = open('lab3b_check.txt', 'w')
+
 	# Run helper functions here
 	getFileSystemData()
 	checkIndirect()
+	checkInodes()
+	checkDirectories()
+	writeToOutput(lab3b_check_txt)
+
+	# Close file
+	lab3b_check_txt.close()
 
 if __name__ == "__main__":
 	main()
