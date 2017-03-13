@@ -1,0 +1,80 @@
+Name:	Nathan Kong
+UID:	204 401 093
+Title:	Lab 4
+
+Notes:
+	* I did NOT do the extra-credit DISP command.
+
+	* Testing was done on my native machine and using openconnect VPN.
+
+	* It was not possible for me to test with a clean Edison because I am
+	  currently using the device for my capstone course.
+
+	* My implementation of part 2 uses sockets whereas part 3 makes use of
+	  BIO.
+
+	* There are 3 C-files: part1_main.c, part2_main.c, part3_main.c.
+
+	* Along with 3 corresponding log files: part1_log.txt, part2_log.txt,
+	  part3_log.txt.
+
+	* Using 
+
+	* There was one time in which I encountered multiple messages received
+	  in a single read, my program stalled afterwards.  However, I was not
+	  able to recreate this error, and this is possibly something with
+	  using openconnect to VPN to the school's network.
+
+Files:
+	* README
+
+	* Makefile
+		make 		Compiles all C-files.
+
+		make default	Same as **above**.
+
+		make part1 	Compiles part 1.
+		
+		make part2 	Compiles part 2.
+		
+		make part3 	Compiles part 3.
+
+		make run1 	Runs part 1, if not yet compiled then compiles
+				& runs part 1.
+
+		make run2 	Runs part 2, if not yet compiled then compiles
+				& runs part 2.
+
+		make run3 	Runs part 3, if not yet compiled then compiles
+				& runs part 3.
+		
+		make clean	Removes all compiled files and log files.
+		
+		make tarball	Packages necessary files into tarball.
+
+	* part1_main.c
+		Opens a file and writes temperature values to it in the form:
+		[TIME STAMP] [TEMP]
+		
+		Runs indefinitely.
+
+	* part2_main.c
+		Hardcoded to be run with r01.cs.ucla.edu (port 16000).
+
+		The program will read commands from the server and write its
+		temperature readings to the server (also the terminal and log).
+
+	* part3_main.c
+		Hardcoded to be run with r01.cs.ucla.edu (port 17000).
+
+		The program will read commands from the server and write its
+		temperature readings to the server (also the terminal and log).
+
+		Uses a SSL (Secure Sockets Layer) to communicate with the
+		server.
+
+	* log2.txt
+		Log file from a test run with the remote server.
+
+	* log3.txt
+		Log file from a test run with the secure remote server.
