@@ -18,12 +18,19 @@ Notes:
 	* Along with 3 corresponding log files: part1_log.txt, part2_log.txt,
 	  part3_log.txt.
 
-	* Using 
+	* Stdout prints what is RECEIVED and SENT; the log file will have
+	  have timestamps. 
 
 	* There was one time in which I encountered multiple messages received
 	  in a single read, my program stalled afterwards.  However, I was not
 	  able to recreate this error, and this is possibly something with
 	  using openconnect to VPN to the school's network.
+
+	* In another run with the TLS server, I had failed to receive commands
+	  from the server for a period of time.  Therefore the log would show
+	  a sequence of temperature reads (about 20 consecutively) then
+	  commands that were seemingly blocked appeared.  This may have been
+	  due to the server restarting/high traffic (using VPN).
 
 Files:
 	* README
@@ -64,6 +71,10 @@ Files:
 		The program will read commands from the server and write its
 		temperature readings to the server (also the terminal and log).
 
+		The terminal will print what is sent/received from the server,
+		the log itself should have a [TIME STAMP] [TEMP] format along
+		with received commands.
+
 	* part3_main.c
 		Hardcoded to be run with r01.cs.ucla.edu (port 17000).
 
@@ -72,6 +83,10 @@ Files:
 
 		Uses a SSL (Secure Sockets Layer) to communicate with the
 		server.
+
+		The terminal will print what is sent/received from the server,
+		the log itself should have a [TIME STAMP] [TEMP] format along
+		with received commands.
 
 	* log2.txt
 		Log file from a test run with the remote server.
