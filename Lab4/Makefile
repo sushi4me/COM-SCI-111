@@ -4,26 +4,27 @@
 #------------------------------------------------------
 
 CC = 		gcc
-CFLAGS1 = 	-g -Wall -lm -lmraa -o part1_main
-CFLAGS2 =	-g -Wall -lm -lmraa -pthread -o part2_main
-CFLAGS3 =	-g -Wall -lm -lmraa -pthread -o part3_main -lssl -lcrypto
+CFLAGS1 = 	-g -Wall -lm -lmraa -o lab4_1
+CFLAGS2 =	-g -Wall -lm -lmraa -pthread -o lab4_2
+CFLAGS3 =	-g -Wall -lm -lmraa -pthread -o lab4_3 -lssl -lcrypto
 
 TAR_LABEL = 	lab4-204401093
 TAR_FILES = 	part1_main.c \
 		part2_main.c \
 		part3_main.c \
-		log2.txt \
-		log3.txt \
+		lab4_1.log \
+		lab4_2.log \
+		lab4_3.log \
 		Makefile \
 		README
 
-OUT = 		part1_main \
-		part2_main \
-		part3_main
+OUT = 		lab4_1 \
+		lab4_2 \
+		lab4_3
 
-LOGS =		part1_log.txt \
-		part2_log.txt \
-		part3_log.txt
+LOGS =		lab4_1.log \
+		lab4_2.log \
+		lab4_3.log
 
 .SILENT:
 
@@ -42,25 +43,25 @@ part3:
 
 run1:
 	@if [ -e part1_main ]; then		\
-		./part1_main;			\
+		./lab4_1;			\
 	else					\
 		$(CC) $(CFLAGS1) part1_main.c; 	\
-		./part1_main;			\
+		./lab4_1;			\
 	fi
 run2:
 	@if [ -e part2_main ]; then		\
-		./part2_main;			\
+		./lab4_2;			\
 	else					\
 		$(CC) $(CFLAGS2) part2_main.c; 	\
-		./part2_main;			\
+		./lab4_2;			\
 	fi
 
 run3:
 	@if [ -e part3_main ]; then		\
-		./part3_main;			\
+		./lab4_3;			\
 	else					\
 		$(CC) $(CFLAGS3) part3_main.c; 	\
-		./part3_main;			\
+		./lab4_3;			\
 	fi
 
 tarball:

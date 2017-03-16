@@ -5,6 +5,13 @@ Title:	Lab 4
 Notes:
 	* I did NOT do the extra-credit DISP command.
 
+	!! The temperatures seen in lab4_2.log and lab4_3.log are lower than
+	   that of expected room temperature.  This is due to the Grove break-
+	   out board being powered on 3.3V instead of 5V.  By enabling 5V
+	   via switch we get more accurate readings of room temperature.  This
+	   does not change the correct operation of the temperature sensor as
+	   it still displays increase in temperature when held.
+
 	* Testing was done on my native machine and using openconnect VPN.
 
 	* It was not possible for me to test with a clean Edison because I am
@@ -88,8 +95,11 @@ Files:
 		the log itself should have a [TIME STAMP] [TEMP] format along
 		with received commands.
 
-	* log2.txt
+	* lab4_1.log
+		Log file containing 109 temperature readings (1 second per).
+
+	* lab4_2.log
 		Log file from a test run with the remote server.
 
-	* log3.txt
+	* lab4_3.log
 		Log file from a test run with the secure remote server.
